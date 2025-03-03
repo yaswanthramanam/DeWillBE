@@ -39,7 +39,8 @@ enum Gender {
 enum Currency {
     ETH,
     Sonic,
-    Near
+    Near,
+    Electronium
 }
 
 describe("DeWill", function () {

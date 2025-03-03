@@ -8,6 +8,12 @@ const config: HardhatUserConfig = {
   solidity: "0.8.28",
   defaultNetwork: "hardhat",
   networks: {
+    electroneumTestnet: {
+      url: "https://rpc.ankr.com/electroneum_testnet",
+      chainId: 5201420,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 5000000000,
+    },
     sonicblaze: {
       url: "https://rpc.blaze.soniclabs.com",
       chainId: 57054,
