@@ -13,10 +13,17 @@ contract DeWill is Ownable {
 
     mapping(address => Recipient[]) private inheritence;
 
+    mapping(address => mapping(Currency => uint256)) private balance;
+
     struct Activity {
         uint256 lastActivity;
         bool isActive;
         uint256 inactivityThreshold;
+    }
+
+    struct Balance{
+        Currency currency;
+        uint256 balance; 
     }
 
     enum Country {
@@ -40,7 +47,8 @@ contract DeWill is Ownable {
     enum Currency {
         ETH,
         Sonic,
-        Near
+        Near,
+        Electroneum
     }
 
     struct Recipient {
@@ -80,12 +88,19 @@ contract DeWill is Ownable {
         countryToCurrency[_country] = _currency;
     }
 
-    function addRecipients(
-        Recipient[] memory _recipients
-    ) external {
+    function updateBalance(Currency _currency, uint256 _balance) external{
+        balance[msg.sender][_currency] = _balance;
+    }
+
+    function getBalance(Currency _currency) external view returns(uint256){
+        return balance[msg.sender][_currency];
+    }
+
+    function addRecipients(Recipient[] memory _recipients) external {
         require(_recipients.length > 0, "Recipients cannot be empty");
 
-        uint256 inactivityThreshold =  recentActivity[msg.sender].inactivityThreshold;
+        uint256 inactivityThreshold = recentActivity[msg.sender]
+            .inactivityThreshold;
 
         recentActivity[msg.sender] = Activity(
             block.timestamp,
@@ -107,8 +122,12 @@ contract DeWill is Ownable {
         isStaking[msg.sender] = _status;
     }
 
-    function getStaking(
-    ) external view returns (bool) {
+    function getStaking() external view returns (bool) {
         return isStaking[msg.sender];
+    }
+
+    function removeRecipients() external {
+        delete inheritence[msg.sender];
+        delete isStaking[msg.sender];
     }
 }
