@@ -18,6 +18,11 @@ interface Recipient {
     percentage: number
 }
 
+interface Will{
+    text: string;
+    recipients: Recipient[];
+}
+
 enum Country {
     India,
     UnitedStates,
@@ -73,7 +78,15 @@ describe("DeWill", function () {
                     percentage: 100
                 }
             ];
-            await deWill.addRecipients(recipients);
+
+            let will: Will = {
+                text: "", 
+                recipients: []
+            };
+            
+            will.recipients= recipients;
+            will.text= "Sample";
+            await deWill.addRecipients(will);
             console.log(await deWill.getRecipients());
             expect((await deWill.getRecipients()).length).to.equal(1);
 

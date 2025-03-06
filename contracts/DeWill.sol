@@ -11,7 +11,7 @@ contract DeWill is Ownable {
 
     mapping(address => bool) private isStaking;
 
-    mapping(address => Recipient[]) private inheritence;
+    mapping(address => Will) private inheritence;
 
     mapping(address => mapping(Currency => uint256)) private balance;
 
@@ -21,9 +21,14 @@ contract DeWill is Ownable {
         uint256 inactivityThreshold;
     }
 
-    struct Balance{
+    struct Balance {
         Currency currency;
-        uint256 balance; 
+        uint256 balance;
+    }
+
+    struct Will {
+        string text;
+        Recipient[] recipients;
     }
 
     enum Country {
@@ -88,16 +93,16 @@ contract DeWill is Ownable {
         countryToCurrency[_country] = _currency;
     }
 
-    function updateBalance(Currency _currency, uint256 _balance) external{
+    function updateBalance(Currency _currency, uint256 _balance) external {
         balance[msg.sender][_currency] = _balance;
     }
 
-    function getBalance(Currency _currency) external view returns(uint256){
+    function getBalance(Currency _currency) external view returns (uint256) {
         return balance[msg.sender][_currency];
     }
 
-    function addRecipients(Recipient[] memory _recipients) external {
-        require(_recipients.length > 0, "Recipients cannot be empty");
+    function addRecipients(Will memory _will) external {
+        Recipient[] memory _recipients = _will.recipients;
 
         uint256 inactivityThreshold = recentActivity[msg.sender]
             .inactivityThreshold;
@@ -108,13 +113,29 @@ contract DeWill is Ownable {
             inactivityThreshold
         );
 
-        delete inheritence[msg.sender];
+        address[] memory addresses = new address[](_recipients.length);
+
         for (uint256 i = 0; i < _recipients.length; i++) {
-            inheritence[msg.sender].push(_recipients[i]);
+            address recipientAddr = _recipients[i].addr;
+            for (uint256 j = 0; j < i; j++) {
+                require(
+                    addresses[j] != recipientAddr,
+                    "Duplicate recipients found"
+                );
+            }
+
+            addresses[i] = recipientAddr;
         }
+
+        delete inheritence[msg.sender];
+        inheritence[msg.sender] = _will;
     }
 
     function getRecipients() public view returns (Recipient[] memory) {
+        return inheritence[msg.sender].recipients;
+    }
+
+    function getWill() public view returns (Will memory) {
         return inheritence[msg.sender];
     }
 
