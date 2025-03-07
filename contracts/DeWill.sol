@@ -15,6 +15,8 @@ contract DeWill is Ownable {
 
     mapping(address => Request) private requests;
 
+    address[] private keys;
+
     mapping(address => mapping(Currency => uint256)) private balance;
 
     struct Activity {
@@ -93,6 +95,10 @@ contract DeWill is Ownable {
     function optOut() external {
         delete inheritence[msg.sender];
         delete isStaking[msg.sender];
+    }
+
+    function getKeys() external view returns(address[] memory){
+        return keys;
     }
 
     function setCountryCurrency(

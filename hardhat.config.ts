@@ -8,7 +8,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.28",
     settings: {
-      viaIR: true // Enables IR optimization
+      viaIR: true
     }
   },
   defaultNetwork: "hardhat",
