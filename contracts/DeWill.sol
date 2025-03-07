@@ -13,12 +13,21 @@ contract DeWill is Ownable {
 
     mapping(address => Will) private inheritence;
 
+    mapping(address => Request) private requests;
+
     mapping(address => mapping(Currency => uint256)) private balance;
 
     struct Activity {
         uint256 lastActivity;
         bool isActive;
         uint256 inactivityThreshold;
+    }
+
+    struct Request {
+        string email;
+        string code;
+        uint256 amount;
+        string reason;
     }
 
     struct Balance {
@@ -93,8 +102,28 @@ contract DeWill is Ownable {
         countryToCurrency[_country] = _currency;
     }
 
-    function updateBalance(Currency _currency, uint256 _balance) external {
-        balance[msg.sender][_currency] = _balance;
+    function addBalance(Currency _currency) external payable {
+        require(msg.value > 0, "Must send ETH value greater than 0");
+        require(
+            _currency == Currency.Electroneum,
+            "Only ETH (mapped as Electroneum) supported"
+        );
+        balance[msg.sender][_currency] += msg.value;
+    }
+
+    function withdrawBalance(Currency _currency, uint256 _amount) external {
+        require(_amount > 0, "Withdrawal amount must be greater than 0");
+        require(
+            _currency == Currency.Electroneum,
+            "Only ETH (mapped as Electroneum) supported"
+        );
+        require(
+            balance[msg.sender][_currency] >= _amount,
+            "Insufficient balance"
+        );
+        balance[msg.sender][_currency] -= _amount;
+        (bool sent, ) = payable(msg.sender).call{value: _amount}("");
+        require(sent, "Failed to send ETH");
     }
 
     function getBalance(Currency _currency) external view returns (uint256) {
