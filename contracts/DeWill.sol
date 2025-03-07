@@ -13,23 +13,25 @@ contract DeWill is Ownable {
 
     mapping(address => Will) private inheritence;
 
-    mapping(address => Request) private requests;
+    mapping(address => Request[]) private requests;
 
     address[] private keys;
 
     mapping(address => mapping(Currency => uint256)) private balance;
 
+    mapping(address => bool) public isAdded;
+
     struct Activity {
         uint256 lastActivity;
-        bool isActive;
         uint256 inactivityThreshold;
     }
 
     struct Request {
         string email;
         string code;
-        uint256 amount;
+        uint256 percentage;
         string reason;
+        uint256 timestamp;
     }
 
     struct Balance {
@@ -95,10 +97,52 @@ contract DeWill is Ownable {
     function optOut() external {
         delete inheritence[msg.sender];
         delete isStaking[msg.sender];
+        removeKey(msg.sender);
+        delete isAdded[msg.sender];
+        delete recentActivity[msg.sender];
+        delete requests[msg.sender];
+        // Explicitly reset each currency balance to 0
+        balance[msg.sender][Currency.ETH] = 0;
+        balance[msg.sender][Currency.Sonic] = 0;
+        balance[msg.sender][Currency.Near] = 0;
+        balance[msg.sender][Currency.Electroneum] = 0;
     }
 
-    function getKeys() external view returns(address[] memory){
+    function getKeys() external view returns (address[] memory) {
         return keys;
+    }
+
+    function removeKey(address addr) internal {
+        for (uint i = 0; i < keys.length; i++) {
+            if (keys[i] == addr) {
+                keys[i] = keys[keys.length - 1]; // Replace with last element
+                keys.pop(); // Remove last element
+                return;
+            }
+        }
+    }
+
+    function addRequest(
+        string memory _email,
+        string memory _code,
+        uint256 _percentage,
+        string memory _reason,
+        uint256 _timestamp
+    ) external {
+        Request memory newRequest = Request({
+            email: _email,
+            code: _code,
+            percentage: _percentage,
+            reason: _reason,
+            timestamp: _timestamp
+        });
+        requests[msg.sender].push(newRequest);
+    }
+
+    function getRequests(
+        address user
+    ) external view returns (Request[] memory) {
+        return requests[user];
     }
 
     function setCountryCurrency(
@@ -137,14 +181,14 @@ contract DeWill is Ownable {
     }
 
     function addRecipients(Will memory _will) external {
+        isAdded[msg.sender] = true;
         Recipient[] memory _recipients = _will.recipients;
 
-        uint256 inactivityThreshold = recentActivity[msg.sender]
-            .inactivityThreshold;
+        uint256 inactivityThreshold = block.timestamp +
+            (5 * 365 * 24 * 60 * 60); // 5 years
 
         recentActivity[msg.sender] = Activity(
             block.timestamp,
-            true,
             inactivityThreshold
         );
 
