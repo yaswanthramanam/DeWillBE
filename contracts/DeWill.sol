@@ -139,6 +139,29 @@ contract DeWill is Ownable {
         requests[msg.sender].push(newRequest);
     }
 
+    function deleteRequests(
+        address sender,
+        string memory _email,
+        string memory _code
+    ) external {
+        Request[] storage userRequests = requests[sender];
+        uint256 i = 0;
+
+        while (i < userRequests.length) {
+            if (
+                keccak256(abi.encodePacked(userRequests[i].email)) ==
+                keccak256(abi.encodePacked(_email)) &&
+                keccak256(abi.encodePacked(userRequests[i].code)) ==
+                keccak256(abi.encodePacked(_code))
+            ) {
+                userRequests[i] = userRequests[userRequests.length - 1];
+                userRequests.pop();
+            } else {
+                i++;
+            }
+        }
+    }
+
     function getRequests(
         address user
     ) external view returns (Request[] memory) {
