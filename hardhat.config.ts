@@ -13,6 +13,12 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: "hardhat",
   networks: {
+    electroneum: {
+      url: "https://rpc.ankr.com/electroneum",
+      chainId: 52014,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 5000000000,
+    },
     electroneumTestnet: {
       url: "https://rpc.ankr.com/electroneum_testnet",
       chainId: 5201420,
